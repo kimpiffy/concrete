@@ -23,11 +23,13 @@
 
   * { box-sizing: border-box; }
 
-  html, body { margin: 0; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  html, body { margin: 0; overflow-x: hidden; overflow-x: clip; }
 
   body {
     min-height: 100vh;
     font-family: "Cirrus Cumulus", sans-serif;
+    font-size: 1rem;
     color: #8ace00;
     background-color: #cfcfcc;
     /* Halftone dots: two offset grids for a newsprint feel */
@@ -39,6 +41,7 @@
   }
 
   header {
+    overflow: hidden;
     padding: 2vw;
   }
 
@@ -63,11 +66,11 @@
   /* col-12 phones, col-6 from landscape phones/tablets, col-3 on wide desktops */
   #objects {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 2vw;
   }
-  @media (min-width: 600px)  { #objects { grid-template-columns: repeat(2, 1fr); } }
-  @media (min-width: 1200px) { #objects { grid-template-columns: repeat(4, 1fr); } }
+  @media (min-width: 600px)  { #objects { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (min-width: 1200px) { #objects { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
   .viewer {
     aspect-ratio: 1;
@@ -75,7 +78,7 @@
     overflow: hidden;
     cursor: grab;
   }
-  figure { margin: 0; }
+  figure { margin: 0; min-width: 0; }
   #objects figure { display: flex; flex-direction: column; }
   #objects figcaption { flex: 1 1 auto; }
   figcaption {
@@ -85,7 +88,14 @@
     background: rgba(29, 29, 29, 0.85);
   }
   .viewer:active { cursor: grabbing; }
-  .viewer canvas { display: block; width: 100%; height: 100%; }
+  #objects figure, #modal {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #modal img { -webkit-user-drag: none; pointer-events: none; }
+  .viewer canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 
   #vertigo {
     display: grid;
@@ -100,6 +110,7 @@
     padding: clamp(1.2rem, 4vw, 2.5rem);
     background: rgba(29, 29, 29, 0.85);
     border-left: 6px solid #8ace00;
+    font-size: 1rem;
     line-height: 1.6;
   }
   .text-box h2 {
@@ -121,15 +132,21 @@
   .plan img { display: block; width: 100%; height: auto; margin: 0 auto; filter: grayscale(1); }
 
   /* Two columns from tablet width: poem left, plan image right */
-  @media (min-width: 900px) {
+  @media (max-width: 1199px) {
+    .text-box, .colophon { max-width: none; text-align: center; }
+    .text-box { border-left: 0; border-top: 6px solid #8ace00; }
+  }
+  @media (min-width: 1200px) {
     #vertigo { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; align-items: stretch; }
     .poem, .plan { grid-row: span 2; display: grid; grid-template-rows: subgrid; }
     .colophon { align-self: start; margin-top: 0; }
-    .plan img { align-self: stretch; height: auto; min-height: 0; contain: size; object-fit: contain; object-position: center; }
+    .plan-link { align-self: stretch; min-height: 0; contain: size; }
+    .plan-link img { position: absolute; inset: 0; height: 100%; object-fit: contain; object-position: center; }
     .plan figcaption { margin-top: 0; }
   }
 
   #ode {
+    overflow: hidden;
     margin: 0;
     padding: 2vw;
     font-family: "HyperScrypt Stencil", sans-serif;
@@ -182,6 +199,87 @@
   }
   .carousel .prev { left: 0.5rem; }
   .carousel .next { right: 0.5rem; }
+
+  .plan-link { position: relative; overflow: hidden; cursor: pointer; }
+  .plan-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(138, 206, 0, 0.6);
+    opacity: 0;
+    pointer-events: none;
+    animation: flash 2s ease-in-out infinite;
+  }
+  @keyframes flash { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) {
+    .plan-link::after { animation: none; opacity: 0.4; }
+  }
+  #sim-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 4rem 4vw 4vw;
+    overflow-y: auto;
+    background: rgba(29, 29, 29, 0.92);
+  }
+  #sim-modal[hidden] { display: none; }
+  #sim-close {
+    position: fixed;
+    top: 1rem;
+    right: 1.2rem;
+    z-index: 1;
+    font: 2rem/1 "Cirrus Cumulus", sans-serif;
+    color: #8ace00;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+  .sim-wrap { position: relative; margin-top: auto; }
+  .sim-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2vw; }
+  @media (min-width: 1200px) { .sim-grid { grid-template-columns: repeat(4, 1fr); } }
+  .sim-grid img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: contain;
+    background: rgba(138, 206, 0, 0.5);
+  }
+  .sim-wrap button.sim-nav { display: none; }
+  .sim-desc {
+    margin: 0 0 auto;
+    padding: 0.7em 0.9em;
+    background: rgba(29, 29, 29, 0.85);
+    border-left: 6px solid #8ace00;
+    line-height: 1.5;
+  }
+  @media (max-width: 599px) {
+    .sim-grid {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      gap: 0;
+    }
+    .sim-grid::-webkit-scrollbar { display: none; }
+    .sim-grid img { flex: 0 0 100%; scroll-snap-align: center; }
+    .sim-wrap button.sim-nav {
+      display: block;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 2.5rem;
+      height: 2.5rem;
+      font: 1.8rem/1 "Cirrus Cumulus", sans-serif;
+      color: #8ace00;
+      background: rgba(29, 29, 29, 0.85);
+      border: 0;
+    }
+    .sim-wrap .sim-prev { left: 0.5rem; }
+    .sim-wrap .sim-next { right: 0.5rem; }
+  }
 
   .reveal {
     opacity: 0;
@@ -332,7 +430,7 @@
   <h1 id="title"><span>Speculative</span><span>Landscapes</span></h1>
   <div class="header-row">
     <button id="sound-btn" type="button" aria-pressed="false">Sound</button>
-    <p class="specimens-note">Concrete Specimens: Double click to enlarge and view texture.</p>
+    <p class="specimens-note">Concrete Specimens: Double click / double tap to enlarge and view texture.</p>
   </div>
 </header>
 <main>
@@ -360,7 +458,7 @@
   <div class="poem">
   <div class="text-box">
     <h2 class="reveal">Vertigo</h2>
-    <p class="reveal">So many floors store knowledge, so what’s left to know? No new discoveries, in places where new forms are simply simulations of what once stood here in in space.</p>
+    <p class="reveal">So many floors store knowledge, so what’s left to find out about? No new discoveries, in places where new forms are simply simulations of what once stood here in in space.</p>
     <p class="reveal">Low humming. Bricks stacked layer upon layer upon layer upon layer, tiny stones crumble in the gutter next to cigarette butts. Can you spare any change, please? But no one carries cash these days.</p>
     <p class="reveal">The high street, a giant cash and carry, denial of the grave, a protest on every compass point they congregate around the centre where everything ever written is emblazoned with geometry, sacred. So perfect, it just feels synthetic. A rendezvous with chaos.</p>
     <p class="reveal">The sun shines so brightly off the high-shine metal surface that my third eye aches. I feel blinded from the inside; coronavirus. Airborne particles. A random guy coughs down my neck, and I feel paranoia - alive.</p>
@@ -369,7 +467,7 @@
   <p class="colophon reveal">Automatic writing exercise.<br>Duration: 5 minutes.<br>Location: Birmingham Central Library Lvl 4, Archives.</p>
   </div>
   <figure class="plan reveal">
-    <img src="IMG_4425.jpeg" alt="Former Birmingham Central Library design plans" loading="lazy">
+    <div class="plan-link"><img src="IMG_4425.jpeg" alt="Former Birmingham Central Library design plans. Click to view the simulacra." loading="lazy" role="button" tabindex="0"></div>
     <figcaption>Former Birmingham Central Library, design plans.<br>John Madin Design Group, January 1973.<br>Location: Consulted at Birmingham Central Library, Lvl 4, Archives.</figcaption>
   </figure>
 </section>
@@ -388,6 +486,21 @@
   </div>
   <p class="journey reveal">Journey to the centre: Documenting my walk to the new Birmingham Central Library on a thermal print instant camera.</p>
 </section>
+<div id="sim-modal" hidden>
+  <button id="sim-close" type="button" aria-label="Close">&times;</button>
+  <div class="sim-wrap">
+    <div class="sim-grid">
+      <img data-src="simulacra/IMG_6783.jpg" alt="Simulacrum of the old Central Library plans, 1">
+      <img data-src="simulacra/IMG_6784.jpg" alt="Simulacrum of the old Central Library plans, 2">
+      <img data-src="simulacra/IMG_6785.jpg" alt="Simulacrum of the old Central Library plans, 3">
+      <img data-src="simulacra/IMG_6786.jpg" alt="Simulacrum of the old Central Library plans, 4">
+    </div>
+    <button class="sim-nav sim-prev" type="button" aria-label="Previous image">&lsaquo;</button>
+    <button class="sim-nav sim-next" type="button" aria-label="Next image">&rsaquo;</button>
+  </div>
+  <p class="sim-desc">Simulacra of the old Birmingham Central Library: original plans photographed, re-printed, distorted through scanning before uploading.</p>
+</div>
+
 <div id="sound-modal" hidden>
   <button id="sound-close" type="button" aria-label="Close">&times;</button>
   <div class="box">
@@ -446,8 +559,14 @@
     controls.enableDamping = true;
     controls.enablePan = false;
     controls.enableZoom = false;
-    // Let vertical swipes scroll the page; horizontal drags rotate the object.
-    renderer.domElement.style.touchAction = inModal ? "none" : "pan-y";
+        // Inline on touch screens the objects don't respond to swipes, so the page always scrolls.
+    const touchOnly = matchMedia("(pointer: coarse)").matches;
+    if (touchOnly && !inModal) {
+      controls.enabled = false;
+      renderer.domElement.style.touchAction = "auto";
+    } else {
+      renderer.domElement.style.touchAction = inModal ? "none" : "pan-y";
+    }
 
     const pivot = new THREE.Group();
     scene.add(pivot);
@@ -534,6 +653,8 @@
   let disposeModal = null;
 
   function openModal(fig, index) {
+    if (!modal.hidden) return;
+    getSelection()?.removeAllRanges();
     const dir = fig.querySelector(".viewer").dataset.dir;
     modalTex.src = `${dir}/material_0-color.png`;
     modalTex.alt = "Flat texture map";
@@ -555,10 +676,51 @@
   document.querySelectorAll("#objects figure").forEach((fig, i) => {
     fig.addEventListener("dblclick", () => openModal(fig, i));
   });
+  // Touch screens: detect double-tap ourselves (dblclick is unreliable on iOS).
+  document.querySelectorAll("#objects figure").forEach((fig, i) => {
+    let last = 0;
+    fig.addEventListener("pointerup", (e) => {
+      if (e.pointerType !== "touch") return;
+      const now = Date.now();
+      if (now - last < 350) { last = 0; openModal(fig, i); } else last = now;
+    });
+  });
   modal.addEventListener("click", (e) => {
     if (e.target === modal || e.target.closest("#modal-close")) closeModal();
   });
   addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+
+  // Plan image opens the simulacra gallery.
+  const simModal = document.getElementById("sim-modal");
+  const simGrid = simModal.querySelector(".sim-grid");
+  const planImg = document.querySelector(".plan img");
+  function openSim() {
+    simGrid.querySelectorAll("img[data-src]").forEach((img) => {
+      img.src = img.dataset.src;
+      img.removeAttribute("data-src");
+    });
+    simModal.hidden = false;
+    document.body.style.overflow = "hidden";
+    simGrid.scrollLeft = 0;
+    simModal.scrollTop = 0;
+  }
+  function closeSim() {
+    if (simModal.hidden) return;
+    simModal.hidden = true;
+    document.body.style.overflow = "";
+  }
+  planImg.parentElement.addEventListener("click", openSim);
+  planImg.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openSim(); }
+  });
+  simModal.addEventListener("click", (e) => {
+    if (e.target === simModal || e.target.closest("#sim-close")) closeSim();
+  });
+  simModal.querySelector(".sim-prev").addEventListener("click", () =>
+    simGrid.scrollBy({ left: -simGrid.clientWidth, behavior: "smooth" }));
+  simModal.querySelector(".sim-next").addEventListener("click", () =>
+    simGrid.scrollBy({ left: simGrid.clientWidth, behavior: "smooth" }));
+  addEventListener("keydown", (e) => { if (e.key === "Escape") closeSim(); });
 </script>
 <script>
   const header = document.querySelector("header");
@@ -579,6 +741,8 @@
 
   document.fonts.ready.then(() => { fit(); fitVertigo(); });
   window.addEventListener("resize", () => { fit(); fitVertigo(); });
+  // iOS reports stale sizes right after rotating, so refit once it settles.
+  window.addEventListener("orientationchange", () => setTimeout(() => { fit(); fitVertigo(); }, 300));
 
   // Scale the Vertigo heading to the text box's inner width.
   function fitVertigo() {
