@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f1e9">
+    <title>Alternative Landscapes</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        color: #202c27;
+        background: #f4f1e9;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      .page-title {
+        min-height: 48vh;
+        display: flex;
+        align-items: flex-end;
+        padding: clamp(2rem, 7vw, 7rem);
+        color: #f4f1e9;
+        background:
+          radial-gradient(ellipse at 80% 105%, #b7a46d 0 12%, transparent 12.2%),
+          radial-gradient(ellipse at 66% 112%, #667b5b 0 25%, transparent 25.2%),
+          linear-gradient(155deg, transparent 45%, #314f44 45.2% 68%, transparent 68.2%),
+          linear-gradient(25deg, #1d352e 22%, #526c56 22.2% 53%, #87916c 53.2% 72%, #d0b881 72.2%);
+      }
+
+      h1 {
+        max-width: 12ch;
+        margin: 0;
+        font-size: clamp(3.5rem, 11vw, 10rem);
+        font-weight: 500;
+        letter-spacing: -0.075em;
+        line-height: 0.88;
+      }
+
+      main {
+        width: min(100% - 2.5rem, 1440px);
+        margin: 0 auto;
+        padding: clamp(3rem, 7vw, 7rem) 0;
+      }
+
+      .landscape-grid {
+        display: grid;
+        gap: 1.25rem;
+      }
+
+      .landscape-grid--four {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .landscape-grid--two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 1.25rem;
+      }
+
+      .landscape {
+        min-width: 0;
+      }
+
+      .landscape-art {
+        position: relative;
+        min-height: 260px;
+        overflow: hidden;
+        background-color: #c7c4a7;
+      }
+
+      .landscape-art::before,
+      .landscape-art::after {
+        position: absolute;
+        right: -10%;
+        bottom: -25%;
+        left: -10%;
+        height: 70%;
+        border-radius: 50% 50% 0 0;
+        content: "";
+      }
+
+      .landscape-art::before {
+        transform: rotate(-8deg) translateY(-18%);
+        background: #6d8064;
+      }
+
+      .landscape-art::after {
+        transform: rotate(7deg) translateY(14%);
+        background: #304e42;
+      }
+
+      .art-dunes {
+        background:
+          radial-gradient(circle at 72% 25%, #f0d699 0 7%, transparent 7.2%),
+          linear-gradient(165deg, #d7a96e, #f0d6a0 58%, #b7784f);
+      }
+
+      .art-dunes::before { background: #c78659; }
+      .art-dunes::after { background: #875841; }
+
+      .art-wetland {
+        background:
+          radial-gradient(ellipse at 35% 80%, #b4b98d 0 5%, transparent 5.3%),
+          linear-gradient(160deg, #aab9a5, #d8d0a7 58%, #768a75);
+      }
+
+      .art-wetland::before { background: #899c7a; }
+      .art-wetland::after { background: #526c60; }
+
+      .art-highlands {
+        background:
+          radial-gradient(circle at 76% 24%, #f0d99e 0 6%, transparent 6.2%),
+          linear-gradient(150deg, #b7c4b8, #dfd2ad 62%, #8f9c83);
+      }
+
+      .art-highlands::before { background: #929c84; }
+      .art-highlands::after { background: #5c7164; }
+
+      .art-coast {
+        background:
+          linear-gradient(170deg, transparent 0 53%, #d6d0b5 53.2% 61%, transparent 61.2%),
+          linear-gradient(180deg, #a9c7c3 0 56%, #688f8a 56.2%);
+      }
+
+      .art-coast::before { background: #baae8c; }
+      .art-coast::after { background: #536d60; }
+
+      .art-forest {
+        min-height: 360px;
+        background:
+          radial-gradient(ellipse at 50% 20%, #d3b976 0 8%, transparent 8.2%),
+          linear-gradient(135deg, #9caa83, #425c4e 65%, #263f37);
+      }
+
+      .art-forest::before {
+        right: 36%;
+        left: 36%;
+        height: 95%;
+        border-radius: 45%;
+        background: #d1c293;
+      }
+
+      .art-forest::after {
+        background: linear-gradient(175deg, transparent 0 44%, #355247 44.2%);
+      }
+
+      .art-mountain {
+        min-height: 360px;
+        background:
+          radial-gradient(circle at 78% 20%, #f0d99e 0 6%, transparent 6.2%),
+          linear-gradient(180deg, #c3cfca, #e2d6b6 65%, #a6a88d);
+      }
+
+      .art-mountain::before {
+        height: 100%;
+        border-radius: 0;
+        clip-path: polygon(0 100%, 0 62%, 28% 17%, 43% 48%, 64% 8%, 100% 65%, 100% 100%);
+        background: #798b7b;
+      }
+
+      .art-mountain::after {
+        height: 66%;
+        border-radius: 0;
+        clip-path: polygon(0 100%, 0 67%, 35% 28%, 54% 56%, 77% 4%, 100% 53%, 100% 100%);
+        background: #435f52;
+      }
+
+      .landscape-copy {
+        padding: 1.25rem 0 0;
+      }
+
+      .landscape-index {
+        margin: 0 0 0.65rem;
+        color: #69756a;
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: clamp(1.15rem, 2vw, 1.6rem);
+        font-weight: 500;
+        letter-spacing: -0.04em;
+      }
+
+      .landscape-grid--two h2 {
+        font-size: clamp(1.5rem, 3vw, 2.25rem);
+      }
+
+      .landscape-description {
+        max-width: 42ch;
+        margin: 0.6rem 0 0;
+        color: #68736a;
+        font-size: 0.95rem;
+        line-height: 1.55;
+      }
+
+      @media (max-width: 900px) {
+        .page-title {
+          min-height: 40vh;
+        }
+
+        .landscape-grid--four {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          row-gap: 2.5rem;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .page-title {
+          min-height: 40vh;
+          padding: 2rem 1.25rem;
+        }
+
+        main {
+          width: calc(100% - 2.5rem);
+        }
+
+        .landscape-grid--four,
+        .landscape-grid--two {
+          grid-template-columns: 1fr;
+        }
+
+        .landscape-grid--two {
+          gap: 2.5rem;
+        }
+
+        .landscape-art,
+        .art-forest,
+        .art-mountain {
+          min-height: 300px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="page-title">
+      <h1>Alternative Landscapes</h1>
+    </header>
+    <main>
+      <section class="landscape-grid landscape-grid--four" aria-label="Landscape studies">
+        <article class="landscape">
+          <div class="landscape-art art-dunes" role="img" aria-label="Layered desert dunes beneath a warm sun"></div>
+          <div class="landscape-copy">
+            <p class="landscape-index">01 / Arid ground</p>
+            <h2>Shifting dunes</h2>
+          </div>
+        </article>
+        <article class="landscape">
+          <div class="landscape-art art-wetland" role="img" aria-label="Soft green hills in a broad wetland"></div>
+          <div class="landscape-copy">
+            <p class="landscape-index">02 / Water country</p>
+            <h2>Living marsh</h2>
+          </div>
+        </article>
+        <article class="landscape">
+          <div class="landscape-art art-highlands" role="img" aria-label="Quiet highland ridges beneath an open sky"></div>
+          <div class="landscape-copy">
+            <p class="landscape-index">03 / Upland</p>
+            <h2>Open highlands</h2>
+          </div>
+        </article>
+        <article class="landscape">
+          <div class="landscape-art art-coast" role="img" aria-label="A calm blue-green coastal horizon"></div>
+          <div class="landscape-copy">
+            <p class="landscape-index">04 / Edge of land</p>
+            <h2>Tidal edge</h2>
+          </div>
+        </article>
+      </section>
+      <section class="landscape-grid landscape-grid--two" aria-label="Further landscapes">
+        <article class="landscape">
+          <div class="landscape-art art-forest" role="img" aria-label="Sunlight falling through a deep green forest"></div>
+          <div class="landscape-copy">
+            <p class="landscape-index">05 / Woodland</p>
+            <h2>Forest, reimagined</h2>
+            <p class="landscape-description">A softer boundary between cultivated ground and the wild.</p>
+          </div>
+        </article>
+        <article class="landscape">
+          <div class="landscape-art art-mountain" role="img" aria-label="Overlapping mountain forms beneath a pale sky"></div>
+          <div class="landscape-copy">
+            <p class="landscape-index">06 / Beyond the familiar</p>
+            <h2>New horizons</h2>
+            <p class="landscape-description">Looking at familiar terrain from a different point of view.</p>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
