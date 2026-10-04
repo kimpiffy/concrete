@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Speculative Landscapes</title>
+<link rel="preload" href="CirrusCumulus.woff" as="font" type="font/woff" crossorigin>
+<link rel="preload" href="HyperScrypt-Stencil_web.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  @font-face {
+    font-family: "HyperScrypt Stencil";
+    src: url("HyperScrypt-Stencil_web.woff2") format("woff2"),
+         url("HyperScrypt-Stencil_web.woff") format("woff"),
+         url("HyperScrypt-Stencil_web.ttf") format("truetype");
+    font-display: block;
+  }
+
+  @font-face {
+    font-family: "Cirrus Cumulus";
+    src: url("CirrusCumulus.woff") format("woff");
+    font-display: block;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { margin: 0; }
+
+  body {
+    min-height: 100vh;
+    font-family: "Cirrus Cumulus", sans-serif;
+    color: #8ace00;
+    background-color: #cfcfcc;
+    /* Halftone dots: two offset grids for a newsprint feel */
+    background-image:
+      radial-gradient(circle at center, rgba(0, 0, 0, 0.28) 0 1.4px, transparent 1.9px),
+      radial-gradient(circle at center, rgba(0, 0, 0, 0.18) 0 1px, transparent 1.5px);
+    background-size: 8px 8px, 8px 8px;
+    background-position: 0 0, 4px 4px;
+  }
+
+  header {
+    padding: 2vw;
+  }
+
+  h1 {
+    margin: 0;
+    font-family: "HyperScrypt Stencil", sans-serif;
+    font-weight: normal;
+    line-height: 0.95;
+    text-transform: uppercase;
+    color: #1d1d1d;
+    opacity: 0.85;
+  }
+
+  h1 span {
+    display: block;
+    white-space: nowrap;
+    font-size: 10vw; /* refined by script below */
+  }
+
+  main { padding: 2vw; }
+
+  /* col-12 phones, col-6 from landscape phones/tablets, col-3 on wide desktops */
+  #objects {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2vw;
+  }
+  @media (min-width: 600px)  { #objects { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1200px) { #objects { grid-template-columns: repeat(4, 1fr); } }
+
+  .viewer {
+    aspect-ratio: 1;
+    position: relative;
+    overflow: hidden;
+    cursor: grab;
+  }
+  figure { margin: 0; }
+  #objects figure { display: flex; flex-direction: column; }
+  #objects figcaption { flex: 1 1 auto; }
+  figcaption {
+    margin-top: 0.6em;
+    padding: 0.7em 0.9em;
+    font-size: 1rem;
+    background: rgba(29, 29, 29, 0.85);
+  }
+  .viewer:active { cursor: grabbing; }
+  .viewer canvas { display: block; width: 100%; height: 100%; }
+
+  #vertigo {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem 3vw;
+    align-items: start;
+    margin-top: 0;
+    padding: 4rem 2vw 4rem;
+  }
+  .text-box {
+    max-width: 40rem;
+    padding: clamp(1.2rem, 4vw, 2.5rem);
+    background: rgba(29, 29, 29, 0.85);
+    border-left: 6px solid #8ace00;
+    line-height: 1.6;
+  }
+  .text-box h2 {
+    margin: 0 0 1rem;
+    white-space: nowrap;
+    font: normal 3rem/1 "HyperScrypt Stencil", sans-serif;
+    text-transform: uppercase;
+  }
+  .text-box p { margin: 0 0 1.2em; }
+  .text-box p:last-child { margin-bottom: 0; }
+  .colophon {
+    max-width: 40rem;
+    margin: 2rem 0 0;
+    padding: 0.7em 0.9em;
+    background: rgba(29, 29, 29, 0.85);
+  }
+
+  .plan { margin: 0; }
+  .plan img { display: block; width: 100%; height: auto; margin: 0 auto; filter: grayscale(1); }
+
+  /* Two columns from tablet width: poem left, plan image right */
+  @media (min-width: 900px) {
+    #vertigo { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; align-items: stretch; }
+    .poem, .plan { grid-row: span 2; display: grid; grid-template-rows: subgrid; }
+    .colophon { align-self: start; margin-top: 0; }
+    .plan img { align-self: stretch; height: auto; min-height: 0; contain: size; object-fit: contain; object-position: center; }
+    .plan figcaption { margin-top: 0; }
+  }
+
+  #ode {
+    margin: 0;
+    padding: 2vw;
+    font-family: "HyperScrypt Stencil", sans-serif;
+    font-weight: normal;
+    line-height: 0.95;
+    text-transform: uppercase;
+    color: #1d1d1d;
+    opacity: 0.85;
+  }
+  #ode span { display: block; white-space: nowrap; font-size: 10vw; }
+  #gallery {
+    padding: 0 2vw 4rem;
+  }
+  .journey {
+    margin: 1rem 0 0;
+    padding: 0.7em 0.9em;
+    font-size: 1rem;
+    background: rgba(29, 29, 29, 0.85);
+  }
+  .carousel { position: relative; }
+  .carousel .track {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    aspect-ratio: 16 / 9;
+    max-height: 85vh;
+    width: 100%;
+  }
+  .carousel .track::-webkit-scrollbar { display: none; }
+  .carousel img {
+    flex: 0 0 100%;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: rgba(138, 206, 0, 0.5);
+    scroll-snap-align: center;
+  }
+  .carousel button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2.5rem;
+    height: 2.5rem;
+    font: 1.8rem/1 "Cirrus Cumulus", sans-serif;
+    color: #8ace00;
+    background: rgba(29, 29, 29, 0.85);
+    border: 0;
+    cursor: pointer;
+  }
+  .carousel .prev { left: 0.5rem; }
+  .carousel .next { right: 0.5rem; }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(1.5rem);
+    transition: opacity 0.9s ease, transform 0.9s ease;
+  }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+  }
+
+  #modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1rem;
+    padding: 4vw;
+    background: rgba(29, 29, 29, 0.85);
+  }
+  #modal[hidden] { display: none; }
+  .modal-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2vw;
+    min-height: 0;
+  }
+  @media (min-width: 600px) { .modal-body { grid-template-columns: 1fr 1fr; } }
+  .modal-body img,
+  .modal-body .viewer {
+    width: 100%;
+    max-height: 70vh;
+    aspect-ratio: 1;
+    object-fit: contain;
+    justify-self: center;
+  }
+  #modal figcaption { background: none; padding: 0; text-align: center; }
+  #modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1.2rem;
+    font: 2rem/1 "Cirrus Cumulus", sans-serif;
+    color: #8ace00;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .header-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: stretch;
+    gap: 1rem;
+    margin-top: 0.6rem;
+  }
+  .specimens-note {
+    grid-column: 2;
+    margin: 0;
+    padding: 0.7em 0.9em;
+    font-size: 1rem;
+    text-align: center;
+    background: rgba(29, 29, 29, 0.85);
+  }
+  #sound-btn {
+    display: inline-block;
+    grid-column: 1;
+    justify-self: start;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0.5em 1em;
+    font: 14px/1 "Cirrus Cumulus", sans-serif;
+    letter-spacing: 0.2em;
+    color: #8ace00;
+    background: rgba(29, 29, 29, 0.85);
+    border: 0;
+    cursor: pointer;
+  }
+  #sound-btn[aria-pressed="true"] { background: #8ace00; color: #1d1d1d; }
+  @media (max-width: 700px) {
+    .header-row { grid-template-columns: 1fr; justify-items: start; }
+    .specimens-note { grid-column: 1; text-align: left; }
+  }
+  #sound-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4vw;
+    background: rgba(29, 29, 29, 0.85);
+  }
+  #sound-modal[hidden] { display: none; }
+  #sound-modal .box {
+    max-width: 34rem;
+    padding: 1.5rem;
+    line-height: 1.6;
+    background: rgba(29, 29, 29, 0.85);
+    border: 2px solid #8ace00;
+  }
+  #sound-modal strong { display: block; letter-spacing: 0.2em; }
+  #sound-modal p { margin: 0.8em 0 0; }
+  #sound-modal .hint { opacity: 0.8; }
+  #sound-close {
+    position: absolute;
+    top: 1rem;
+    right: 1.2rem;
+    font: 2rem/1 "Cirrus Cumulus", sans-serif;
+    color: #8ace00;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+  .fonts-pending body > * { visibility: hidden; }
+  #preloader {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: 1rem/1 "Cirrus Cumulus", sans-serif;
+    color: #8ace00;
+    background: rgba(29, 29, 29, 0.85);
+    transition: opacity 0.6s ease;
+  }
+  #preloader.done { opacity: 0; pointer-events: none; }
+  #preloader .dots span { opacity: 0; }
+  #preloader .dots span.on { opacity: 1; }
+</style>
+<script>
+  // Keep everything (including the preloader) hidden until the body font is ready.
+  document.documentElement.classList.add("fonts-pending");
+  Promise.race([
+    document.fonts.load('1rem "Cirrus Cumulus"'),
+    new Promise((r) => setTimeout(r, 4000)),
+  ]).catch(() => {}).then(() => document.documentElement.classList.remove("fonts-pending"));
+</script>
+</head>
+<body>
+<div id="preloader" role="status" aria-live="polite">
+  <p>Loading Specimens<span class="dots"><span>.</span><span>.</span><span>.</span></span></p>
+</div>
+<header>
+  <h1 id="title"><span>Speculative</span><span>Landscapes</span></h1>
+  <div class="header-row">
+    <button id="sound-btn" type="button" aria-pressed="false">Sound</button>
+    <p class="specimens-note">Concrete Specimens: Double click to enlarge and view texture.</p>
+  </div>
+</header>
+<main>
+  <section id="objects">
+    <figure>
+      <div class="viewer" data-dir="Concrete1"></div>
+      <figcaption>Specimen I: Distorted scan of the old Birmingham Central Library architectural plans.</figcaption>
+    </figure>
+    <figure>
+      <div class="viewer" data-dir="Concrete4"></div>
+      <figcaption>Specimen II: Distorted scan of the processing department architectural plans of the old Birmingham Central Library.</figcaption>
+    </figure>
+    <figure>
+      <div class="viewer" data-dir="Concrete3"></div>
+      <figcaption>Specimen III: Worm's eye view of the central rotunda atrium from Lvl 4 of the new Birmingham Central Library.</figcaption>
+    </figure>
+    <figure>
+      <div class="viewer" data-dir="Concrete2"></div>
+      <figcaption>Specimen IV: Sacred geometric cladding of the new Birmingham Central Library.</figcaption>
+    </figure>
+  </section>
+</main>
+
+<section id="vertigo">
+  <div class="poem">
+  <div class="text-box">
+    <h2 class="reveal">Vertigo</h2>
+    <p class="reveal">So many floors store knowledge, so what’s left to know? No new discoveries, in places where new forms are simply simulations of what once stood here in in space.</p>
+    <p class="reveal">Low humming. Bricks stacked layer upon layer upon layer upon layer, tiny stones crumble in the gutter next to cigarette butts. Can you spare any change, please? But no one carries cash these days.</p>
+    <p class="reveal">The high street, a giant cash and carry, denial of the grave, a protest on every compass point they congregate around the centre where everything ever written is emblazoned with geometry, sacred. So perfect, it just feels synthetic. A rendezvous with chaos.</p>
+    <p class="reveal">The sun shines so brightly off the high-shine metal surface that my third eye aches. I feel blinded from the inside; coronavirus. Airborne particles. A random guy coughs down my neck, and I feel paranoia - alive.</p>
+    <p class="reveal">The schizophrenic drowns, whilst the mystic swims in this apocalyptic landscape. Earth imprisoned now she’s known as Mother Board apparently. I went to Brum and all I got was Vertigo.</p>
+  </div>
+  <p class="colophon reveal">Automatic writing exercise.<br>Duration: 5 minutes.<br>Location: Birmingham Central Library Lvl 4, Archives.</p>
+  </div>
+  <figure class="plan reveal">
+    <img src="IMG_4425.jpeg" alt="Former Birmingham Central Library design plans" loading="lazy">
+    <figcaption>Former Birmingham Central Library, design plans.<br>John Madin Design Group, January 1973.<br>Location: Consulted at Birmingham Central Library, Lvl 4, Archives.</figcaption>
+  </figure>
+</section>
+
+<h2 id="ode"><span>An ode to</span><span>the poor image</span></h2>
+
+<section id="gallery">
+  <div class="carousel reveal" aria-label="Image carousel">
+    <div class="track">
+      <img src="IMG_6779.jpeg" alt="" loading="lazy">
+      <img src="IMG_6780.jpeg" alt="" loading="lazy">
+      <img src="IMG_6782.jpeg" alt="" loading="lazy">
+    </div>
+    <button class="prev" type="button" aria-label="Previous image">&lsaquo;</button>
+    <button class="next" type="button" aria-label="Next image">&rsaquo;</button>
+  </div>
+  <p class="journey reveal">Journey to the centre: Documenting my walk to the new Birmingham Central Library on a thermal print instant camera.</p>
+</section>
+<div id="sound-modal" hidden>
+  <button id="sound-close" type="button" aria-label="Close">&times;</button>
+  <div class="box">
+    <strong>Sound Recording:</strong>
+    <p>Recorded on Lvl 4, Archives, of the new Birmingham Central Library. Beginning in the past, slowed and muffled, it gradually speeds up exponentially every four loops, bringing us to the present before it grows more distorted through ring modulation and echo into the future.</p>
+    <p class="hint">Press space to play / pause.</p>
+  </div>
+</div>
+
+<div id="modal" hidden>
+  <button id="modal-close" type="button" aria-label="Close">&times;</button>
+  <div class="modal-body">
+    <img alt="">
+    <div class="viewer"></div>
+  </div>
+  <figcaption></figcaption>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+  import * as THREE from "three";
+  import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
+  import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+  const texLoader = new THREE.TextureLoader();
+  const objLoader = new OBJLoader();
+
+  function loadTex(url, srgb) {
+    const t = texLoader.load(url);
+    if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+    t.flipY = true;
+    return t;
+  }
+
+  function setupViewer(el, index, inModal = false) {
+    const dir = el.dataset.dir;
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    el.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 1000);
+    camera.position.set(0, 0, 4);
+
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x666666, 1.2));
+    const key = new THREE.DirectionalLight(0xffffff, 2.2);
+    key.position.set(3, 4, 5);
+    scene.add(key);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.enablePan = false;
+    controls.enableZoom = false;
+    // Let vertical swipes scroll the page; horizontal drags rotate the object.
+    renderer.domElement.style.touchAction = inModal ? "none" : "pan-y";
+
+    const pivot = new THREE.Group();
+    scene.add(pivot);
+
+    let loaded = false, visible = false, interacting = false;
+    controls.addEventListener("start", () => (interacting = true));
+    controls.addEventListener("end", () => (interacting = false));
+
+    function load() {
+      loaded = true;
+      const material = new THREE.MeshStandardMaterial({
+        map: loadTex(`${dir}/material_0-color.png`, true),
+        roughnessMap: loadTex(`${dir}/material_0-roughness.png`, false),
+        metalnessMap: loadTex(`${dir}/material_0-metallic.png`, false),
+        roughness: 1,
+        metalness: 1,
+      });
+      objLoader.load(`${dir}/Shakespeare.obj`, (obj) => {
+        obj.traverse((c) => {
+          if (c.isMesh) {
+            c.material = material;
+            if (!c.geometry.attributes.normal) c.geometry.computeVertexNormals();
+          }
+        });
+        const box = new THREE.Box3().setFromObject(obj);
+        const size = box.getSize(new THREE.Vector3()).length();
+        obj.position.sub(box.getCenter(new THREE.Vector3()));
+        pivot.scale.setScalar(2.4 / size);
+        pivot.add(obj);
+      });
+    }
+
+    function resize() {
+      const w = el.clientWidth, h = el.clientHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+    const resizeObs = new ResizeObserver(resize);
+    resizeObs.observe(el);
+    resize();
+
+    const visObs = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible && !loaded) load();
+    }, { rootMargin: "200px" });
+    visObs.observe(el);
+
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const phase = index * 1.7;
+
+    renderer.setAnimationLoop((ms) => {
+      if (!visible) return;
+      const t = ms / 1000 + phase;
+      if (!interacting && !reduced) {
+        pivot.rotation.y += 0.008;
+        pivot.rotation.x = Math.sin(t * 0.5) * 0.25;
+      }
+      if (!reduced) {
+        pivot.position.y = Math.sin(t * 0.9) * 0.08;
+        pivot.position.x = Math.cos(t * 0.6) * 0.05;
+      }
+      controls.update();
+      renderer.render(scene, camera);
+    });
+
+    return () => {
+      renderer.setAnimationLoop(null);
+      resizeObs.disconnect();
+      visObs.disconnect();
+      controls.dispose();
+      renderer.dispose();
+      renderer.domElement.remove();
+    };
+  }
+
+  document.querySelectorAll("#objects .viewer").forEach(setupViewer);
+
+  // Double-click a specimen to open it beside its flat texture.
+  const modal = document.getElementById("modal");
+  const modalTex = modal.querySelector("img");
+  const modalViewer = modal.querySelector(".viewer");
+  const modalCaption = modal.querySelector("figcaption");
+  let disposeModal = null;
+
+  function openModal(fig, index) {
+    const dir = fig.querySelector(".viewer").dataset.dir;
+    modalTex.src = `${dir}/material_0-color.png`;
+    modalTex.alt = "Flat texture map";
+    modalViewer.dataset.dir = dir;
+    modalCaption.textContent = fig.querySelector("figcaption").textContent;
+    modal.hidden = false;
+    document.body.style.overflow = "hidden";
+    disposeModal = setupViewer(modalViewer, index, true);
+  }
+
+  function closeModal() {
+    if (modal.hidden) return;
+    disposeModal?.();
+    disposeModal = null;
+    modal.hidden = true;
+    document.body.style.overflow = "";
+  }
+
+  document.querySelectorAll("#objects figure").forEach((fig, i) => {
+    fig.addEventListener("dblclick", () => openModal(fig, i));
+  });
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal || e.target.closest("#modal-close")) closeModal();
+  });
+  addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+</script>
+<script>
+  const header = document.querySelector("header");
+  const lines = document.querySelectorAll("#title span, #ode span");
+
+  function fit() {
+    lines.forEach(el => {
+      const box = el.closest("header, #ode");
+      const cs = getComputedStyle(box);
+      const width = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      el.style.display = "inline-block";
+      el.style.fontSize = "100px";
+      const w = el.getBoundingClientRect().width;
+      el.style.fontSize = (100 * width / w) + "px";
+      el.style.display = "block";
+    });
+  }
+
+  document.fonts.ready.then(() => { fit(); fitVertigo(); });
+  window.addEventListener("resize", () => { fit(); fitVertigo(); });
+
+  // Scale the Vertigo heading to the text box's inner width.
+  function fitVertigo() {
+    const h = document.querySelector(".text-box h2");
+    const box = h.parentElement;
+    const cs = getComputedStyle(box);
+    const width = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    h.style.display = "inline-block";
+    h.style.fontSize = "100px";
+    const w = h.getBoundingClientRect().width;
+    h.style.fontSize = (100 * width / w) + "px";
+    h.style.display = "block";
+  }
+
+  const revealObs = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.isIntersecting) {
+        e.target.classList.add("in");
+        revealObs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.2 });
+  document.querySelectorAll(".reveal").forEach((el) => revealObs.observe(el));
+
+  const carousel = document.querySelector(".carousel");
+  const track = carousel.querySelector(".track");
+  const slides = [...track.children];
+  track.prepend(slides[slides.length - 1].cloneNode());
+  track.append(slides[0].cloneNode());
+  const jump = (i) => {
+    track.style.scrollSnapType = "none";
+    track.scrollLeft = i * track.clientWidth;
+    track.style.scrollSnapType = "";
+  };
+  const index = () => Math.round(track.scrollLeft / track.clientWidth);
+  requestAnimationFrame(() => jump(1));
+  addEventListener("resize", () => jump(Math.min(Math.max(index(), 1), slides.length)));
+  let settle;
+  track.addEventListener("scroll", () => {
+    clearTimeout(settle);
+    settle = setTimeout(() => {
+      const i = index();
+      if (i === 0) jump(slides.length);
+      else if (i === slides.length + 1) jump(1);
+    }, 120);
+  });
+  function slide(dir) {
+    track.scrollBy({ left: dir * track.clientWidth, behavior: "smooth" });
+  }
+  carousel.querySelector(".prev").addEventListener("click", () => slide(-1));
+  carousel.querySelector(".next").addEventListener("click", () => slide(1));
+  let paused = false;
+  carousel.addEventListener("pointerenter", () => (paused = true));
+  carousel.addEventListener("pointerleave", () => (paused = false));
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    setInterval(() => { if (!paused && !document.hidden) slide(1); }, 5000);
+  }
+
+  // Looping audio that drifts from the past (slow, muffled) through normal speed into a warped future.
+  const AUDIO_SRC = encodeURI("Central Library 2.m4a");
+  const START_RATE = 0.2;      // first repetition
+  const DOUBLING_EVERY = 4;    // repetitions per doubling of speed
+  const MAX_RATE = 4;
+
+  let ctx, buffer, nodes, repetition = 0;
+
+  function makeCurve(amount) {
+    const n = 1024, curve = new Float32Array(n);
+    const k = amount * 100;
+    for (let i = 0; i < n; i++) {
+      const x = (i / (n - 1)) * 2 - 1;
+      curve[i] = ((1 + k) * x) / (1 + k * Math.abs(x));
+    }
+    return curve;
+  }
+
+  function buildGraph() {
+    const lowpass = ctx.createBiquadFilter();
+    lowpass.type = "lowpass";
+    const highpass = ctx.createBiquadFilter();
+    highpass.type = "highpass";
+    const shaper = ctx.createWaveShaper();
+    shaper.oversample = "2x";
+
+    // Ring modulation: gain is (1 - depth) + osc * depth
+    const ring = ctx.createGain();
+    const ringOsc = ctx.createOscillator();
+    const ringDepth = ctx.createGain();
+    ringOsc.connect(ringDepth).connect(ring.gain);
+    ringOsc.start();
+
+    // Feedback echo for a smeared, uncanny future tail
+    const delay = ctx.createDelay(1);
+    const feedback = ctx.createGain();
+    const wet = ctx.createGain();
+    delay.connect(feedback).connect(delay);
+    delay.connect(wet);
+
+    // Slow wobble (tape wow) applied to detune
+    const wobble = ctx.createOscillator();
+    const wobbleDepth = ctx.createGain();
+    wobble.connect(wobbleDepth);
+    wobble.start();
+
+    const master = ctx.createGain();
+    master.gain.value = 0.9;
+
+    lowpass.connect(highpass).connect(shaper).connect(ring);
+    ring.connect(master);
+    ring.connect(delay);
+    wet.connect(master);
+    master.connect(ctx.destination);
+
+    return { lowpass, highpass, shaper, ring, ringOsc, ringDepth, delay, feedback, wet, wobble, wobbleDepth };
+  }
+
+  function applyDistortion(n, rate) {
+    const p = Math.log2(rate);                      // <0 past, 0 now, >0 future
+    const past = Math.min(1, Math.max(0, -p / 2.3));
+    const future = Math.min(1, Math.max(0, p / 2));
+    const wear = Math.min(1, n / 24);               // general decay with every repetition
+    const t = ctx.currentTime;
+
+    nodes.lowpass.frequency.setTargetAtTime(Math.max(500, 16000 * Math.pow(0.1, past + wear * 0.4)), t, 0.05);
+    nodes.highpass.frequency.setTargetAtTime(20 + future * 700, t, 0.05);
+    nodes.shaper.curve = makeCurve(0.02 + wear * 0.25 + future * 0.5 + past * 0.1);
+
+    // Past: slow, deep wobble. Future: fast ring-mod and a long metallic echo.
+    nodes.wobble.frequency.setTargetAtTime(0.3 + past * 0.5, t, 0.05);
+    nodes.wobbleDepth.gain.setTargetAtTime(past * 60 + wear * 10, t, 0.05);
+    nodes.ringOsc.frequency.setTargetAtTime(30 + future * 400, t, 0.05);
+    nodes.ringDepth.gain.setTargetAtTime(future * 0.5, t, 0.05);
+    nodes.ring.gain.setTargetAtTime(1 - future * 0.5, t, 0.05);
+    nodes.delay.delayTime.setTargetAtTime(0.03 + future * 0.17, t, 0.05);
+    nodes.feedback.gain.setTargetAtTime(future * 0.6, t, 0.05);
+    nodes.wet.gain.setTargetAtTime(future * 0.5, t, 0.05);
+  }
+
+  function playRepetition() {
+    const rate = Math.min(MAX_RATE, START_RATE * Math.pow(2, repetition / DOUBLING_EVERY));
+    applyDistortion(repetition, rate);
+
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    src.playbackRate.value = rate;
+    src.connect(nodes.lowpass);
+    nodes.wobbleDepth.connect(src.detune);
+    src.onended = () => {
+      nodes.wobbleDepth.disconnect(src.detune);
+      repetition++;
+      playRepetition();
+    };
+    src.start();
+  }
+
+  const soundBtn = document.getElementById("sound-btn");
+  const soundModal = document.getElementById("sound-modal");
+
+  const syncSoundState = () =>
+    soundBtn.setAttribute("aria-pressed", String(!!ctx && ctx.state === "running"));
+
+  async function loadAudio() {
+    ctx = new AudioContext();
+    ctx.onstatechange = syncSoundState;
+    const data = await (await fetch(AUDIO_SRC)).arrayBuffer();
+    buffer = await ctx.decodeAudioData(data);
+    nodes = buildGraph();
+    playRepetition();
+  }
+
+  async function toggleSound() {
+    if (!ctx) await loadAudio();
+    if (ctx.state === "running") await ctx.suspend();
+    else await ctx.resume();
+    syncSoundState();
+  }
+
+  // Autoplay on landing; if the browser blocks it, start on the first interaction.
+  const audioReady = loadAudio().then(() => ctx.resume()).catch(() => {});
+  const unlockEvents = ["pointerdown", "keydown", "touchstart"];
+  function unlock(e) {
+    if (e.target.closest?.("#sound-btn") || e.code === "Space" || e.key === "Escape") return;
+    if (ctx && ctx.state === "suspended") ctx.resume();
+    if (ctx && ctx.state === "running") unlockEvents.forEach((n) => removeEventListener(n, unlock, true));
+  }
+  unlockEvents.forEach((n) => addEventListener(n, unlock, true));
+
+  // Preloader: animated dots until fonts, page assets and audio are ready (max 15s).
+  const preloader = document.getElementById("preloader");
+  const dots = [...preloader.querySelectorAll(".dots span")];
+  let step = 0;
+  const dotTimer = setInterval(() => {
+    dots.forEach((d, i) => d.classList.toggle("on", i < step));
+    step = (step + 1) % (dots.length + 1);
+  }, 350);
+  const pageLoaded = document.readyState === "complete"
+    ? Promise.resolve()
+    : new Promise((r) => addEventListener("load", r, { once: true }));
+  Promise.race([
+    Promise.all([document.fonts.ready, pageLoaded, audioReady]),
+    new Promise((r) => setTimeout(r, 15000)),
+  ]).then(() => {
+    clearInterval(dotTimer);
+    preloader.classList.add("done");
+    setTimeout(() => preloader.remove(), 700);
+  });
+
+  const closeSoundModal = () => { soundModal.hidden = true; };
+
+  // Button: starting opens the modal; stopping leaves the modal alone.
+  soundBtn.addEventListener("click", () => {
+    soundBtn.blur();
+    const playing = ctx && ctx.state === "running";
+    if (!playing) soundModal.hidden = false;
+    toggleSound();
+  });
+  soundModal.addEventListener("click", (e) => {
+    if (e.target === soundModal || e.target.closest("#sound-close")) closeSoundModal();
+  });
+  addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeSoundModal();
+    if (e.code !== "Space" || e.repeat) return;
+    const t = e.target;
+    if (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+    e.preventDefault();
+    toggleSound();
+  });
+  addEventListener("keyup", (e) => { if (e.code === "Space") e.preventDefault(); });
+</script>
+</body>
+</html>
